@@ -318,6 +318,7 @@ function App() {
           <thead>
             <tr>
               <th onClick={() => requestSort('title')} style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Title{renderSort('title')}</th>
+              <th onClick={() => requestSort('advertCreatedAt')} style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Created{renderSort('advertCreatedAt')}</th>
               <th onClick={() => requestSort('price')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Price (€){renderSort('price')}</th>
               <th onClick={() => requestSort('minPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min (€){renderSort('minPrice')}</th>
               <th onClick={() => requestSort('minPrice20Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 20% (€){renderSort('minPrice20Below')}</th>
@@ -341,6 +342,7 @@ function App() {
                     d.title || '—'
                   )}
                 </td>
+                <td style={{ padding: 8 }}>{formatLisbonDate(d.advertCreatedAt)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.price)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }} title={formatDiffTitle('Net', d.minPrice, d.minPrice20Below)}>{formatNumber(d.minPrice20Below)}</td>
@@ -356,7 +358,7 @@ function App() {
             ))}
             {!loading && !error && filtered.length === 0 && (
               <tr>
-                <td colSpan={12} style={{ padding: 24, textAlign: 'center', color: '#666' }}>No results match current filters.</td>
+                <td colSpan={13} style={{ padding: 24, textAlign: 'center', color: '#666' }}>No results match current filters.</td>
               </tr>
             )}
           </tbody>
@@ -364,6 +366,15 @@ function App() {
       </div>
     </div>
   )
+}
+
+function formatLisbonDate(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d)
+  const get = (type) => parts.find(p => p.type === type)?.value || ''
+  return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}`
 }
 
 function formatNumber(v) {
