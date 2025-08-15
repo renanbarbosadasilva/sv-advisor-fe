@@ -313,8 +313,8 @@ function App() {
         <span style={{ marginLeft: 'auto' }}>Showing {filtered.length} of {data.length}</span>
       </section>
 
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="table-container" style={{ overflow: 'auto', maxHeight: '70vh' }}>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
           <thead>
             <tr>
               <th onClick={() => requestSort('title')} style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Title{renderSort('title')}</th>

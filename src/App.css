@@ -40,3 +40,23 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Keep table headers visible when scrolling */
+/* Applies to all tables in the app; scoped enough for our use case */
+.table-container {
+  position: relative;
+}
+
+/* Ensure border model allows sticky to render cleanly across browsers */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+table thead th {
+  position: sticky;
+  top: 0;
+  background: #fff; /* ensure rows don’t bleed through */
+  background-clip: padding-box;
+  z-index: 5;       /* keep above table rows */
+}
