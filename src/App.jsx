@@ -320,9 +320,9 @@ function App() {
               <th onClick={() => requestSort('title')} style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Title{renderSort('title')}</th>
               <th onClick={() => requestSort('price')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Price (€){renderSort('price')}</th>
               <th onClick={() => requestSort('minPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min (€){renderSort('minPrice')}</th>
-              <th onClick={() => requestSort('minPrice30Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 30% (€){renderSort('minPrice30Below')}</th>
-              <th onClick={() => requestSort('minPrice25Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 25% (€){renderSort('minPrice25Below')}</th>
               <th onClick={() => requestSort('minPrice20Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 20% (€){renderSort('minPrice20Below')}</th>
+              <th onClick={() => requestSort('minPrice25Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 25% (€){renderSort('minPrice25Below')}</th>
+              <th onClick={() => requestSort('minPrice30Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 30% (€){renderSort('minPrice30Below')}</th>
               <th onClick={() => requestSort('maxPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Max (€){renderSort('maxPrice')}</th>
               <th onClick={() => requestSort('diffPriceMinPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Diff vs Min (€){renderSort('diffPriceMinPrice')}</th>
               <th onClick={() => requestSort('brand')} style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Brand{renderSort('brand')}</th>
@@ -343,9 +343,9 @@ function App() {
                 </td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.price)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice)}</td>
-                <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice30Below)}</td>
-                <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice25Below)}</td>
-                <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice20Below)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }} title={formatDiffTitle('Net', d.minPrice, d.minPrice20Below)}>{formatNumber(d.minPrice20Below)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }} title={formatDiffTitle('Net', d.minPrice, d.minPrice25Below)}>{formatNumber(d.minPrice25Below)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }} title={formatDiffTitle('Net', d.minPrice, d.minPrice30Below)}>{formatNumber(d.minPrice30Below)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.maxPrice)}</td>
                 <td style={{ padding: 8, textAlign: 'right', color: Number(d.diffPriceMinPrice) <= 0 ? 'green' : undefined }}>{formatNumber(d.diffPriceMinPrice)}</td>
                 <td style={{ padding: 8 }}>{d.brand || '—'}</td>
@@ -372,5 +372,12 @@ function formatNumber(v) {
   return n.toLocaleString(undefined, { maximumFractionDigits: 0 })
 }
 
+function formatDiffTitle(label, min, below) {
+  const a = Number(min)
+  const b = Number(below)
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return ''
+  const diff = a - b
+  return `${label}: ${diff.toLocaleString(undefined, { maximumFractionDigits: 0 })} €`
+}
 
 export default App
