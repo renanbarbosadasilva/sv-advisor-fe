@@ -150,7 +150,7 @@ function App() {
     })
 
     // Sort by selected column and direction; null/empty values last
-    const numericKeys = new Set(['price', 'minPrice', 'minPrice30Below', 'minPrice25Below', 'maxPrice', 'diffPriceMinPrice', 'year'])
+    const numericKeys = new Set(['price', 'minPrice', 'minPrice30Below', 'minPrice25Below', 'minPrice20Below', 'maxPrice', 'diffPriceMinPrice', 'year'])
     const key = sort.key
     const dir = sort.dir === 'asc' ? 1 : -1
 
@@ -322,6 +322,7 @@ function App() {
               <th onClick={() => requestSort('minPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min (€){renderSort('minPrice')}</th>
               <th onClick={() => requestSort('minPrice30Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 30% (€){renderSort('minPrice30Below')}</th>
               <th onClick={() => requestSort('minPrice25Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 25% (€){renderSort('minPrice25Below')}</th>
+              <th onClick={() => requestSort('minPrice20Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 20% (€){renderSort('minPrice20Below')}</th>
               <th onClick={() => requestSort('maxPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Max (€){renderSort('maxPrice')}</th>
               <th onClick={() => requestSort('diffPriceMinPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Diff vs Min (€){renderSort('diffPriceMinPrice')}</th>
               <th onClick={() => requestSort('brand')} style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Brand{renderSort('brand')}</th>
@@ -344,6 +345,7 @@ function App() {
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice30Below)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice25Below)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice20Below)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.maxPrice)}</td>
                 <td style={{ padding: 8, textAlign: 'right', color: Number(d.diffPriceMinPrice) <= 0 ? 'green' : undefined }}>{formatNumber(d.diffPriceMinPrice)}</td>
                 <td style={{ padding: 8 }}>{d.brand || '—'}</td>
@@ -354,7 +356,7 @@ function App() {
             ))}
             {!loading && !error && filtered.length === 0 && (
               <tr>
-                <td colSpan={11} style={{ padding: 24, textAlign: 'center', color: '#666' }}>No results match current filters.</td>
+                <td colSpan={12} style={{ padding: 24, textAlign: 'center', color: '#666' }}>No results match current filters.</td>
               </tr>
             )}
           </tbody>
