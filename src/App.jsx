@@ -14,6 +14,16 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Basic auth state
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('basicAuth') || '')
+  const [login, setLogin] = useState({ username: '', password: '', error: '', loading: false })
+
+  const getAuthHeader = () => (authToken ? { Authorization: `Basic ${authToken}` } : {})
+  const clearAuth = () => {
+    localStorage.removeItem('basicAuth')
+    setAuthToken('')
+  }
+
   const [filters, setFilters] = useState({
     brand: '',
     fuelType: '',
@@ -54,10 +64,17 @@ function App() {
   }
 
   const fetchData = async (reset = false) => {
+    if (!authToken) return
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/sent-adverts')
+      const res = await fetch('/api/sent-adverts', { headers: { ...getAuthHeader() } })
+      if (res.status === 401) {
+        // Unauthorized: force login
+        clearAuth()
+        setLogin((prev) => ({ ...prev, error: 'Session expired or unauthorized. Please log in.' }))
+        return
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
       // Ensure expected shape; default to []
@@ -72,10 +89,14 @@ function App() {
     }
   }
 
+  // Load data when authenticated
   useEffect(() => {
-    // Reset filters on first load to avoid browser autofill/stale state
-    fetchData(true)
-  }, [])
+    if (authToken) {
+      // Reset filters on first (auth) load to avoid browser autofill/stale state
+      fetchData(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken])
 
   const uniqueValues = useMemo(() => {
     const brands = new Set()
@@ -129,7 +150,7 @@ function App() {
     })
 
     // Sort by selected column and direction; null/empty values last
-    const numericKeys = new Set(['price', 'minPrice', 'maxPrice', 'diffPriceMinPrice', 'year'])
+    const numericKeys = new Set(['price', 'minPrice', 'minPrice30Below', 'minPrice25Below', 'maxPrice', 'diffPriceMinPrice', 'year'])
     const key = sort.key
     const dir = sort.dir === 'asc' ? 1 : -1
 
@@ -165,9 +186,66 @@ function App() {
 
   const clearFilters = () => setFilters(initialFilters)
 
+  // Login form handlers
+  const onLoginChange = (e) => {
+    const { name, value } = e.target
+    setLogin((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const submitLogin = async (e) => {
+    e.preventDefault()
+    setLogin((prev) => ({ ...prev, loading: true, error: '' }))
+    try {
+      const token = btoa(`${login.username}:${login.password}`)
+      // Try a lightweight request to validate credentials
+      const res = await fetch('/api/sent-adverts', { headers: { Authorization: `Basic ${token}` } })
+      if (!res.ok) {
+        const msg = res.status === 401 ? 'Invalid credentials' : `Login failed (HTTP ${res.status})`
+        setLogin((prev) => ({ ...prev, loading: false, error: msg }))
+        return
+      }
+      localStorage.setItem('basicAuth', token)
+      setAuthToken(token)
+      setLogin({ username: '', password: '', error: '', loading: false })
+      // Data will be fetched via effect on authToken change
+    } catch (e) {
+      setLogin((prev) => ({ ...prev, loading: false, error: e.message || String(e) }))
+    }
+  }
+
+  const logout = () => {
+    clearAuth()
+    setData([])
+  }
+
+  // If not authenticated, show login form
+  if (!authToken) {
+    return (
+      <div style={{ textAlign: 'left', maxWidth: 420, margin: '40px auto' }}>
+        <h1>StandVirtual Advisor</h1>
+        <form onSubmit={submitLogin} style={{ display: 'grid', gap: 12 }}>
+          <div>
+            <label>Username: </label>
+            <input name="username" value={login.username} onChange={onLoginChange} autoComplete="username" />
+          </div>
+          <div>
+            <label>Password: </label>
+            <input type="password" name="password" value={login.password} onChange={onLoginChange} autoComplete="current-password" />
+          </div>
+          {login.error && <div style={{ color: 'tomato' }}>Error: {login.error}</div>}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="submit" disabled={login.loading || !login.username || !login.password}>
+              {login.loading ? 'Logging in…' : 'Login'}
+            </button>
+          </div>
+        </form>
+      </div>
+    )
+  }
+
   return (
     <div style={{ textAlign: 'left', maxWidth: 1200, margin: '0 auto' }}>
-      <h1>Standvirtual Advisor</h1>
+      <h1>StandVirtual Advisor</h1>
       
 
       <section style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', alignItems: 'end', marginBottom: 16 }}>
@@ -225,6 +303,7 @@ function App() {
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={fetchData} disabled={loading}>Refresh</button>
           <button onClick={clearFilters} disabled={loading}>Clear</button>
+          <button onClick={logout} disabled={loading} style={{ marginLeft: 'auto' }}>Logout</button>
         </div>
       </section>
 
@@ -241,6 +320,8 @@ function App() {
               <th onClick={() => requestSort('title')} style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Title{renderSort('title')}</th>
               <th onClick={() => requestSort('price')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Price (€){renderSort('price')}</th>
               <th onClick={() => requestSort('minPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min (€){renderSort('minPrice')}</th>
+              <th onClick={() => requestSort('minPrice30Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 30 Below (€){renderSort('minPrice30Below')}</th>
+              <th onClick={() => requestSort('minPrice25Below')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Min 25 Below (€){renderSort('minPrice25Below')}</th>
               <th onClick={() => requestSort('maxPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Max (€){renderSort('maxPrice')}</th>
               <th onClick={() => requestSort('diffPriceMinPrice')} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Diff vs Min (€){renderSort('diffPriceMinPrice')}</th>
               <th onClick={() => requestSort('brand')} style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: 8, cursor: 'pointer', userSelect: 'none' }}>Brand{renderSort('brand')}</th>
@@ -261,6 +342,8 @@ function App() {
                 </td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.price)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice30Below)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.minPrice25Below)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatNumber(d.maxPrice)}</td>
                 <td style={{ padding: 8, textAlign: 'right', color: Number(d.diffPriceMinPrice) <= 0 ? 'green' : undefined }}>{formatNumber(d.diffPriceMinPrice)}</td>
                 <td style={{ padding: 8 }}>{d.brand || '—'}</td>
@@ -271,7 +354,7 @@ function App() {
             ))}
             {!loading && !error && filtered.length === 0 && (
               <tr>
-                <td colSpan={9} style={{ padding: 24, textAlign: 'center', color: '#666' }}>No results match current filters.</td>
+                <td colSpan={11} style={{ padding: 24, textAlign: 'center', color: '#666' }}>No results match current filters.</td>
               </tr>
             )}
           </tbody>
