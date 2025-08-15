@@ -34,10 +34,11 @@ function App() {
     priceMax: '',
     diffMax: '',
     text: '',
+    onlyMissing: false,
   })
 
   // Sorting state: key corresponds to a field, dir is 'asc' | 'desc'
-  const [sort, setSort] = useState({ key: 'diffPriceMinPrice', dir: 'asc' })
+  const [sort, setSort] = useState({ key: 'advertCreatedAt', dir: 'desc' })
 
   // Request sorting by a given key; toggle direction if already active
   const requestSort = (key) => {
@@ -61,6 +62,7 @@ function App() {
     priceMax: '',
     diffMax: '',
     text: '',
+    onlyMissing: false,
   }
 
   const fetchData = async (reset = false) => {
@@ -146,6 +148,11 @@ function App() {
         const hay = `${d.title || ''} ${d.brand || ''}`.toLowerCase()
         if (!hay.includes(q)) return false
       }
+      if (filters.onlyMissing) {
+        const missingFields = ['advertId','minPrice','maxPrice','diffPriceMinPrice','lastDifference','minPrice20Below','minPrice30Below','minPrice25Below']
+        const hasMissing = missingFields.some((k) => d?.[k] == null)
+        if (!hasMissing) return false
+      }
       return true
     })
 
@@ -180,8 +187,9 @@ function App() {
   }, [data, filters, sort])
 
   const onInput = (e) => {
-    const { name, value } = e.target
-    setFilters((prev) => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = e.target
+    const v = type === 'checkbox' ? !!checked : value
+    setFilters((prev) => ({ ...prev, [name]: v }))
   }
 
   const clearFilters = () => setFilters(initialFilters)
@@ -299,6 +307,12 @@ function App() {
         <div>
           <label>Search text</label>
           <input name="text" value={filters.text} onChange={onInput} placeholder="title or brand" style={{ width: '100%' }} autoComplete="off" />
+        </div>
+        <div>
+          <label>
+            <input type="checkbox" name="onlyMissing" checked={!!filters.onlyMissing} onChange={onInput} />{' '}
+            Only without MinMax
+          </label>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={fetchData} disabled={loading}>Refresh</button>
