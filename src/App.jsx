@@ -348,10 +348,10 @@ function App() {
           </thead>
           <tbody>
             {filtered.map((d, idx) => (
-              <tr key={(d.url || d.title || '') + idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
+              <tr key={(d.trackingUrl || d.title || '') + idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
                 <td style={{ padding: 8, maxWidth: 420 }}>
-                  {d.url ? (
-                    <a href={d.url} target="_blank" rel="noreferrer">{d.title || 'Open'}</a>
+                  {d.trackingUrl ? (
+                    <a href={d.trackingUrl} target="_blank" rel="noreferrer">{d.title || 'Open'}</a>
                   ) : (
                     d.title || '—'
                   )}
